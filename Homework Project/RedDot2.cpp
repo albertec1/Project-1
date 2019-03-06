@@ -1,12 +1,16 @@
 #include <iostream>
 #include "SDL/include/SDL.h"
+#include "SDL_image/include/SDL_image.h"
 
 #pragma comment(lib, "SDL/SDL2main.lib")
 #pragma comment(lib, "SDL/SDL2.lib")
+#pragma comment(lib, "SDL_Image/SDL2_image.lib")
 
 
 int main(int argc, char *argv[])
 {
+
+
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
 		return 1;
