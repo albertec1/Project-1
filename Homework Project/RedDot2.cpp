@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	SDL_Event event;
 
 	const Uint8 *state = SDL_GetKeyboardState(NULL);
-	
+
 
 	int left = 1;
 	SDL_Rect rectangle;
@@ -49,13 +49,17 @@ int main(int argc, char *argv[])
 	laser.y = 260;
 	laser.w = 25;
 	laser.h = 5;
-	
+
 
 	// frame loop
 	while (!quit)
 	{
 		while (SDL_PollEvent(&event) != 0) {
 			if (event.type == SDL_QUIT)
+			{
+				quit = true;
+			}
+			if (state[SDL_SCANCODE_ESCAPE])
 			{
 				quit = true;
 			}
