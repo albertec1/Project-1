@@ -2,10 +2,12 @@
 #include <iostream>
 #include "SDL/include/SDL.h"
 #include "SDL_image/include/SDL_image.h"
+#include "SDL_mixer/include/SDL_mixer.h"
 
 #pragma comment(lib, "SDL/SDL2main.lib")
 #pragma comment(lib, "SDL/SDL2.lib")
 #pragma comment(lib, "SDL_Image/SDL2_image.lib")
+#pragma comment(lib, "SDL_mixer/SDL2_mixer.lib")
 
 
 int main(int argc, char *argv[])
@@ -49,7 +51,44 @@ int main(int argc, char *argv[])
 		// handle error
 
 	}
-	
+
+
+	// load support for the OGG and MOD sample/music formats
+	int MIX_Flags = MIX_INIT_OGG | MIX_INIT_MP3;
+	int initted = Mix_Init(MIX_Flags);
+	if (initted&MIX_Flags != MIX_Flags)
+	{
+		printf("Mix_Init: Failed to init required ogg and mod support!\n");
+		printf("Mix_Init: %s\n", Mix_GetError());
+		// handle error
+	}
+
+	if (SDL_Init(SDL_INIT_AUDIO) == -1)
+	{
+		printf("SDL_Init: %s\n", SDL_GetError());
+		exit(1);
+	}
+
+	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
+	{
+		printf("Mix_OpenAudio: %s\n", Mix_GetError());
+		exit(2);	}
+
+
+	Mix_Chunk *effect;
+	effect = Mix_LoadWAV("music/efect.wav");
+	if (!effect)
+	{
+		printf("Mix_LoadWAV: %s\n", Mix_GetError());
+		// handle error
+	}
+
+	Mix_Music *music;
+	music = Mix_LoadMUS("music/background.ogg");
+	if (!music)
+	{
+		printf("Mix_LoadMUS(\"music.mp3\"): %s\n", Mix_GetError());
+		// this might be a critical error...	}
 
 	bool quit = false;
 	//Struct (Event handler)
@@ -73,11 +112,14 @@ int main(int argc, char *argv[])
 	laser.w = 25;
 	laser.h = 5;
 
-
+	if (Mix_PlayMusic(music, -1) == -1)
+	{
+		printf("Mix_PlayMusic: %s\n", Mix_GetError());
+	}
 	// frame loop
 	while (!quit)
 	{
-		while (SDL_PollEvent(&event) != 0) 
+		while (SDL_PollEvent(&event) != 0)
 		{
 			if (event.type == SDL_QUIT)
 			{
@@ -87,7 +129,7 @@ int main(int argc, char *argv[])
 			{
 				quit = true;
 			}
-			if (state[SDL_SCANCODE_W]) 
+			if (state[SDL_SCANCODE_W])
 			{
 				rectangle.y--;
 				if (laserCharged)
@@ -111,7 +153,7 @@ int main(int argc, char *argv[])
 					laser.y++;
 				}
 			}
-			if (state[SDL_SCANCODE_D]) 
+			if (state[SDL_SCANCODE_D])
 			{
 				rectangle.x++;
 				if (laserCharged)
@@ -119,12 +161,12 @@ int main(int argc, char *argv[])
 					laser.x++;
 				}
 			}
-			if (state[SDL_SCANCODE_SPACE]) 
+			if (state[SDL_SCANCODE_SPACE])
 			{
 				laserCharged = false;
 			}
 		}
-		if (!laserCharged) 
+		if (!laserCharged)
 		{
 			laser.x++;
 		}
@@ -144,13 +186,24 @@ int main(int argc, char *argv[])
 		//render rectangle & laser
 		SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
 		SDL_RenderFillRect(renderer, &laser);
-		
+
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		SDL_RenderFillRect(renderer, &rectangle);
 
 		SDL_RenderPresent(renderer);
-		
+
+		if (Mix_PlayChannel(-1, effect, 0) == -1)
+		{
+			printf("Mix_PlayChannel: %s\n", Mix_GetError());
+		}
 	}
+
+	Mix_FreeChunk(effect);
+	effect = NULL; // to be safe...
+	Mix_FreeMusic(music);
+	music = NULL; // so we know we freed it...
+	Mix_CloseAudio();
+	Mix_Quit();
 	IMG_Quit();
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
